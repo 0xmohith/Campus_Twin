@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Digital Campus Twin with AI Sustainability Monitoring</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;800&family=DM+Sans:wght@400;500;700&display=swap">
+<style>
+:root{--bg:#fff;--panel:rgba(255,255,255,.9);--line:rgba(11,31,63,.16);--tx:#0b1f3f;--mu:#5b7192;--navy:#0b1f3f;--dusk:#6f8fb8;--pale:#dbe6f4}
+*{box-sizing:border-box;margin:0}
+html{scroll-behavior:smooth;scroll-snap-type:y proximity}
+body{background:var(--bg);color:var(--tx);font:15px/1.5 "DM Sans",system-ui,sans-serif}
+section{height:100vh;min-height:560px;position:relative;overflow:hidden;scroll-snap-align:start}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:2px solid var(--sky);outline-offset:2px}
+#hero{display:flex;flex-direction:column;justify-content:center;padding:0 8vw;background:radial-gradient(70% 60% at 75% 55%,#dbe6f4,transparent),linear-gradient(#fff,#eef3fa)}
+#hero svg{position:absolute;right:0;bottom:0;width:62%;opacity:.55}
+#hero h1{font:800 clamp(40px,6.4vw,92px)/1.02 Fraunces,Georgia,serif;max-width:12em;letter-spacing:-.02em;position:relative}
+#hero p{margin:22px 0 32px;max-width:32em;color:var(--mu);font-size:18px;position:relative}
+.hero-actions{display:flex;gap:10px;position:relative}
+.go{align-self:flex-start;background:var(--navy);color:#fff;border:0;border-radius:999px;padding:13px 26px;font-weight:700;position:relative}
+.go.secondary{background:#fff;color:var(--navy);border:1px solid var(--line)}
+.tick{position:absolute;left:8vw;bottom:34px;color:var(--mu);font-size:14px;display:flex;gap:10px;align-items:center}
+.tick i{width:9px;height:9px;border-radius:50%;background:var(--dusk);animation:p 1.6s infinite}
+@keyframes p{50%{opacity:.25}}
+@media(prefers-reduced-motion:reduce){.tick i{animation:none}html{scroll-behavior:auto}}
+#twin{background:#eaf0f8}
+#cv{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:grab;touch-action:pan-y}
+.ov{position:absolute;background:var(--panel);border:1px solid var(--line);border-radius:12px;backdrop-filter:blur(8px)}
+#side{left:18px;top:18px;bottom:18px;width:270px;padding:16px;display:flex;flex-direction:column;gap:10px;overflow:auto}
+#side h2{font:600 22px Fraunces,serif}
+#crumb{color:var(--mu);font-size:13px}
+#back,#top{background:none;border:1px solid var(--line);border-radius:8px;padding:6px 10px;color:var(--navy);align-self:flex-start}
+.it{display:flex;gap:10px;align-items:center;width:100%;text-align:left;background:rgba(111,143,184,.1);border:1px solid var(--line);border-radius:8px;padding:9px 11px}
+.it:hover{border-color:var(--navy)}
+.it small{display:block;color:var(--mu)}
+.dot{width:10px;height:10px;border-radius:3px;flex:none}
+#hint{left:50%;bottom:18px;transform:translateX(-50%);padding:7px 14px;color:var(--mu);font-size:13px;white-space:nowrap}
+#tip{position:absolute;pointer-events:none;background:#0b1f3fe6;color:#fff;padding:4px 9px;border-radius:6px;font-size:13px;display:none}
+#top{position:absolute;right:18px;top:18px;background:var(--panel)}
+#card{right:18px;top:64px;bottom:18px;width:340px;padding:18px;overflow:auto;transition:transform .3s,opacity .3s}
+#card.hide{transform:translateX(30px);opacity:0;pointer-events:none}
+#cx{position:absolute;right:12px;top:10px;background:none;border:0;font-size:22px;color:var(--mu)}
+.badge{display:inline-flex;gap:7px;align-items:center;color:var(--mu);font-size:13px}
+#cn{font:600 24px/1.2 Fraunces,serif;margin:6px 24px 10px 0}
+.chip{display:inline-block;border-radius:999px;padding:2px 11px;font-size:13px;font-weight:700}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0}
+.grid div{background:rgba(111,143,184,.12);border-radius:8px;padding:9px 11px}
+.grid b{display:block;font-size:20px}.grid span{color:var(--mu);font-size:12px}
+#card h4{margin:6px 0 4px;font-size:14px}
+.ai{font-size:12px;background:var(--navy);color:#fff;border-radius:4px;padding:1px 6px;margin-left:6px}
+#cr{padding-left:18px;color:var(--tx)}#cr li{margin:6px 0}
+.detail{margin:8px 0;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:rgba(111,143,184,.07)}
+.detail h4{margin:0 0 5px!important}
+.detail p,.detail li{font-size:13px;overflow-wrap:anywhere}
+.detail pre{max-height:180px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;font:11px/1.4 ui-monospace,monospace;color:var(--mu)}
+.detail summary{cursor:pointer;color:var(--mu);font-size:12px}
+.cam-link{display:inline-block;margin:5px 0;color:var(--navy);font-size:12px;overflow-wrap:anywhere}
+.copy-link{border:1px solid var(--line);border-radius:6px;background:#fff;padding:5px 8px;font-size:12px}
+.empty{color:var(--mu);font-size:13px}
+.foot{display:flex;justify-content:space-between;margin-top:14px;color:var(--mu);font-size:12px}
+.load{color:var(--mu);animation:p 1s infinite}
+@media(max-width:820px){#side{width:auto;right:18px;bottom:auto;max-height:34%}#card{left:18px;width:auto;top:auto;height:46%}#hint{display:none}#hero svg{width:100%}}
+#analytics{height:100vh;min-height:620px;overflow:auto;padding:24px clamp(16px,4vw,56px);background:#f4f7fb;display:flex;flex-direction:column;gap:18px}
+.dash-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}
+.dash-head h2{font:600 clamp(24px,3vw,38px)/1.1 Fraunces,Georgia,serif}
+.dash-head p{margin-top:6px;color:var(--mu);font-size:13px}
+.dash-nav{display:flex;gap:8px;flex-wrap:wrap}
+.dash-nav button{background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px 12px;color:var(--navy);font-weight:700}
+.chart-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(2,minmax(230px,1fr));gap:14px;flex:1;min-height:500px}
+.chart-panel{min-width:0;min-height:0;padding:14px;background:#fff;border:1px solid var(--line);border-radius:12px;display:flex;flex-direction:column}
+.chart-panel h3{font:600 17px Fraunces,Georgia,serif}
+.chart-panel p{color:var(--mu);font-size:12px;margin:2px 0 8px}
+.chart-panel canvas{display:block;width:100%;flex:1;min-height:160px}
+@media(max-width:700px){#analytics{height:auto;min-height:100vh}.dash-head{flex-direction:column}.chart-grid{grid-template-columns:1fr;grid-template-rows:repeat(4,minmax(230px,40vh))}}
+</style>
+</head>
+<body>
+
+<section id="hero">
+  <svg viewBox="0 0 600 300" fill="none" stroke="#6f8fb8" stroke-width="1.5" aria-hidden="true">
+    <path d="M60 280V170h90v110M150 280V140h70v140M220 280V90h60v190M265 90a35 35 0 0 1 70 0v190M335 280V90M335 90h60v190M395 280V140h70v140M465 280V170h90v110M20 280h560M300 40v-14"/>
+    <path d="M250 150h12v14h-12zM350 150h12v14h-12zM90 190h12v14H90zM500 190h12v14h-12z"/>
+  </svg>
+  <h1>Digital Campus Twin with AI Sustainability Monitoring</h1>
+  <p>A live 3D replica of the campus. Cameras and sensors report on every room, and AI turns each reading into a plan to save energy and cut waste.</p>
+  <div class="hero-actions">
+    <button class="go" onclick="document.getElementById('twin').scrollIntoView()">Explore the campus</button>
+    <button class="go secondary" onclick="document.getElementById('analytics').scrollIntoView()">Live analytics</button>
+  </div>
+  <div class="tick"><i></i><span>Next AI analysis in <b id="hc">02:00</b></span></div>
+</section>
+
+<section id="twin">
+  <canvas id="cv"></canvas>
+  <div id="side" class="ov"></div>
+  <div id="top" style="display:flex;gap:8px">
+    <button class="copy-link" onclick="document.getElementById('analytics').scrollIntoView()">Live analytics</button>
+    <button class="copy-link" onclick="document.getElementById('hero').scrollIntoView()">Back to top</button>
+  </div>
+  <div id="hint" class="ov">Drag or scroll sideways to rotate, scroll to zoom, click a block to go inside</div>
+  <div id="tip"></div>
+  <aside id="card" class="ov hide" aria-live="polite">
+    <button id="cx" aria-label="Close">&times;</button>
+    <div class="badge"><span class="dot" id="cd"></span><span id="ct"></span></div>
+    <h3 id="cn"></h3><span class="chip" id="cs"></span>
+    <div class="grid" id="cm"></div>
+    <div class="detail">
+      <h4>AI analysis<span class="ai">Local LLM</span></h4>
+      <p id="ca" class="empty">Loading live analysis...</p>
+      <p id="reasoning"></p>
+      <p id="aiMeta"></p>
+      <ul id="cr"></ul>
+    </div>
+    <div class="detail"><h4>Rule alerts</h4><ul id="alerts"></ul></div>
+    <div class="detail"><h4>Sensor data</h4><div id="sensorSummary" class="empty"></div>
+      <details><summary>Full sensor payload</summary><pre id="sensorRaw"></pre></details>
+    </div>
+    <div class="detail"><h4>Camera data</h4><div id="cameraSummary" class="empty"></div>
+      <details><summary>Full camera payload</summary><pre id="cameraRaw"></pre></details>
+    </div>
+    <div class="detail">
+      <h4>Connect a phone camera</h4>
+      <a id="cameraLink" class="cam-link"></a>
+      <button id="copyCameraLink" class="copy-link" type="button">Copy camera URL</button>
+    </div>
+    <div class="foot"><span id="cu"></span><span>Updates every 2 min</span></div>
+  </aside>
+</section>
+
+<section id="analytics" aria-labelledby="analyticsTitle">
+  <header class="dash-head">
+    <div>
+      <h2 id="analyticsTitle">Cumulative live analysis</h2>
+      <p id="analyticsStatus" aria-live="polite">Connecting to live room data…</p>
+      <p>Charts refresh every 5 seconds; trend history accumulates while this page is open. Sensor values are simulated; camera readings come from connected phones.</p>
+    </div>
+    <nav class="dash-nav" aria-label="Dashboard navigation">
+      <button type="button" onclick="document.getElementById('twin').scrollIntoView()">3D campus</button>
+      <button type="button" onclick="document.getElementById('hero').scrollIntoView()">Back to top</button>
+    </nav>
+  </header>
+  <div class="chart-grid">
+    <article class="chart-panel">
+      <h3>Average room temperature</h3>
+      <p>Live sensor average over the last 60 samples · °C</p>
+      <canvas id="temperatureChart" aria-label="Cumulative average room temperature chart"></canvas>
+    </article>
+    <article class="chart-panel">
+      <h3>Total room power</h3>
+      <p>Live simulated sensor total over the last 60 samples · W</p>
+      <canvas id="powerChart" aria-label="Cumulative total room power chart"></canvas>
+    </article>
+    <article class="chart-panel">
+      <h3>Phone camera detections</h3>
+      <p>Current people and object detections by connected camera</p>
+      <canvas id="cameraChart" aria-label="People and object detections by connected camera"></canvas>
+    </article>
+    <article class="chart-panel">
+      <h3>Air conditioning status</h3>
+      <p>Current room count from the live sensor readings</p>
+      <canvas id="acChart" aria-label="Current room air conditioning on and off chart"></canvas>
+    </article>
+  </div>
+</section>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const CFG={api:"",cameraOrigin:"https://unclaimed-negotiate-swizzle.ngrok-free.dev",interval:120};
+
+const TYPES={L:{k:"lec",n:"Lecture hall",c:0x6f8fb8},B:{k:"lib",n:"Library",c:0x0b1f3f},C:{k:"lab",n:"Lab",c:0xa9c1e0}};
+const hx=c=>"#"+c.toString(16).padStart(6,"0");
+const STAT={optimal:["Running efficiently","#a9c1e0",0x000000,"#0b1f3f"],attention:["Needs attention","#6f8fb8",0x2b4a78,"#fff"],critical:["Wasting resources","#0b1f3f",0x1b3a6b,"#fff"]};
+/* Layout follows the aerial plan: domed main block at the back, three blocks on each side around the fountain.
+   Each layout string = 6 rooms (ground floor first 3, upper floor last 3): L lecture hall, B library, C lab. */
+const BLOCKS=[
+ {id:"M",name:"Main Block",x:0,z:-30,w:28,d:11,h:11,dome:1,lay:"BLLCCL"},
+ {id:"A",name:"Block A",x:-21,z:-16,w:9,d:19,h:9,r:.62,lay:"LLLCLC"},
+ {id:"B",name:"Block B",x:-26,z:3,w:9,d:17,h:9,r:0,lay:"LLBCCC"},
+ {id:"C",name:"Block C",x:-14,z:20,w:17,d:9,h:9,r:0,lay:"LBLCCL"},
+ {id:"D",name:"Block D",x:21,z:-16,w:9,d:19,h:9,r:-.62,lay:"LLLLCC"},
+ {id:"E",name:"Block E",x:26,z:3,w:9,d:17,h:9,r:0,lay:"BLLCLC"},
+ {id:"F",name:"Block F",x:14,z:20,w:17,d:9,h:9,r:0,lay:"LLLCCB"}];
+
+/* ---------- scene ---------- */
+const cv=document.getElementById("cv"),ren=new THREE.WebGLRenderer({canvas:cv,antialias:true});
+ren.setPixelRatio(Math.min(devicePixelRatio,2));
+const scene=new THREE.Scene();scene.background=new THREE.Color(0xeaf0f8);scene.fog=new THREE.Fog(0xeaf0f8,110,230);
+const cam=new THREE.PerspectiveCamera(45,1,.5,400);
+scene.add(new THREE.HemisphereLight(0xffffff,0x9fb3cf,.9));
+const sun=new THREE.DirectionalLight(0xfff0d0,.9);sun.position.set(30,60,40);scene.add(sun);
+
+const add=(geo,col,x,y,z)=>{const m=new THREE.Mesh(geo,new THREE.MeshLambertMaterial({color:col}));m.position.set(x,y,z);scene.add(m);return m};
+add(new THREE.PlaneGeometry(260,260).rotateX(-Math.PI/2),0x5f9a58,0,0,0);
+add(new THREE.CircleGeometry(10,48).rotateX(-Math.PI/2),0xd9d0bf,0,.05,0);
+add(new THREE.RingGeometry(46,50,64).rotateX(-Math.PI/2),0x565d66,0,.05,-4);
+add(new THREE.BoxGeometry(5,.05,60),0x565d66,0,.05,32);
+add(new THREE.CylinderGeometry(2.6,2.6,.8,24),0x6f8fb8,0,.4,0);
+add(new THREE.ConeGeometry(.35,4,10),0xffffff,0,2.6,0);
+/* foliage: lawns, hedges, flower ring and ~170 trees kept clear of buildings and roads */
+add(new THREE.RingGeometry(10,12.5,48).rotateX(-Math.PI/2),0x3f7d46,0,.04,0);
+[[-9,-12],[9,-12],[-8,10],[8,10]].forEach(p=>add(new THREE.CircleGeometry(6,32).rotateX(-Math.PI/2),0x79b36a,p[0],.03,p[1]));
+[-3.4,3.4].forEach(x=>add(new THREE.BoxGeometry(1,1,56),0x2f6b3a,x,.5,32));
+const TN=170,trunk=new THREE.InstancedMesh(new THREE.CylinderGeometry(.35,.5,2.4,6),new THREE.MeshLambertMaterial({color:0x6b4a32}),TN),
+ crown=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(2,1),new THREE.MeshLambertMaterial({color:0xffffff}),TN),
+ d=new THREE.Object3D(),greens=[0x2f7d3c,0x3f9448,0x57a84f,0x276b36].map(c=>new THREE.Color(c));
+let seed=7,tn=0;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;
+while(tn<TN){const x=(rnd()-.5)*130,z=-48+rnd()*104,rp=Math.hypot(x,z),rr=Math.hypot(x,z+4);
+ if(rp<14||(rr>43&&rr<53)||(Math.abs(x)<5&&z>0)||BLOCKS.some(b=>Math.hypot(x-b.x,z-b.z)<Math.max(b.w,b.d)/2+4))continue;
+ const k=.8+rnd()*.9;
+ d.position.set(x,1.2*k,z);d.scale.set(k,k,k);d.updateMatrix();trunk.setMatrixAt(tn,d.matrix);
+ d.position.y=3.6*k;d.scale.set(k*(.9+rnd()*.3),k,k*(.9+rnd()*.3));d.updateMatrix();crown.setMatrixAt(tn,d.matrix);crown.setColorAt(tn,greens[tn%4]);tn++}
+scene.add(trunk,crown);
+
+function tex(){const c=document.createElement("canvas");c.width=c.height=64;const x=c.getContext("2d");
+ x.fillStyle="#dcc29a";x.fillRect(0,0,64,64);x.fillStyle="#45566b";x.fillRect(10,14,14,30);x.fillRect(38,14,14,30);
+ x.fillStyle="#c2a67a";x.fillRect(0,54,64,10);const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;return t}
+const base=tex();
+const face=(rx,ry)=>{const t=base.clone();t.needsUpdate=true;t.repeat.set(rx,ry);return new THREE.MeshLambertMaterial({map:t,transparent:true})};
+
+const blocks={},rooms={},pick=[];
+BLOCKS.forEach(b=>{
+ const g=new THREE.Group();g.position.set(b.x,0,b.z);g.rotation.y=b.r||0;
+ const rx=Math.round(b.d/4),rz=Math.round(b.w/4),ry=Math.round(b.h/3);
+ const roof=new THREE.MeshLambertMaterial({color:0x9c6b48,transparent:true});
+ const mats=[face(rx,ry),face(rx,ry),roof,roof,face(rz,ry),face(rz,ry)];
+ const shell=new THREE.Mesh(new THREE.BoxGeometry(b.w,b.h,b.d),mats);shell.position.y=b.h/2;shell.userData.block=b;g.add(shell);
+ const all=[...mats];
+ if(b.dome){const dm=new THREE.MeshLambertMaterial({color:0xe6d9bd,transparent:true});all.push(dm);
+  const dr=new THREE.Mesh(new THREE.CylinderGeometry(4,4.4,3,24),dm);dr.position.y=b.h+1.5;
+  const dc=new THREE.Mesh(new THREE.SphereGeometry(4,24,12,0,Math.PI*2,0,Math.PI/2),dm);dc.position.y=b.h+3;g.add(dr,dc)}
+ const rg=new THREE.Group();rg.visible=false;g.add(rg);
+ const cnt={L:0,B:0,C:0},list=[];
+ [...b.lay].forEach((k,i)=>{const f=i<3?0:1,col=i%3,n=++cnt[k];
+  const room={id:`${b.id}-${i+1}`,t:k,block:b,name:`${TYPES[k].n} ${n}`,floor:f?"First floor":"Ground floor"};
+  const m=new THREE.Mesh(new THREE.BoxGeometry(b.w/3-.7,2.8,b.d-3),new THREE.MeshLambertMaterial({color:TYPES[k].c,transparent:true,opacity:.92}));
+  m.position.set((col-1)*b.w/3,1.8+f*4,0);m.userData.room=room;
+  m.add(new THREE.LineSegments(new THREE.EdgesGeometry(m.geometry),new THREE.LineBasicMaterial({color:k==="C"?0x0b1f3f:0xffffff})));
+  rg.add(m);room.mesh=m;rooms[room.id]=room;list.push(room)});
+ scene.add(g);pick.push(shell);blocks[b.id]={b,g,shell,all,rg,list};
+});
+
+/* ---------- camera ---------- */
+const HOME={t:new THREE.Vector3(0,0,-4),r:92,th:.5,ph:.95};
+const cur={t:HOME.t.clone(),r:HOME.r,th:HOME.th,ph:HOME.ph},goal={t:HOME.t.clone(),r:HOME.r,th:HOME.th,ph:HOME.ph};
+let drag=null,view=null,hover=null;
+function resize(){const s=document.getElementById("twin");ren.setSize(s.clientWidth,s.clientHeight);cam.aspect=s.clientWidth/s.clientHeight;cam.updateProjectionMatrix()}
+addEventListener("resize",resize);resize();
+cv.addEventListener("pointerdown",e=>{drag={x:e.clientX,y:e.clientY,m:0};cv.setPointerCapture(e.pointerId);cv.style.cursor="grabbing"});
+cv.addEventListener("pointermove",e=>{
+ if(drag){const dx=e.clientX-drag.x,dy=e.clientY-drag.y;drag.m+=Math.abs(dx)+Math.abs(dy);drag.x=e.clientX;drag.y=e.clientY;
+  goal.th-=dx*.006;goal.ph=Math.min(1.45,Math.max(.25,goal.ph-dy*.005))}
+ else hit(e)});
+cv.addEventListener("pointerup",e=>{cv.style.cursor="grab";if(drag&&drag.m<6)click(e);drag=null});
+cv.addEventListener("wheel",e=>{e.preventDefault();
+ if(Math.abs(e.deltaX)>Math.abs(e.deltaY))goal.th+=e.deltaX*.005; /* sideways scroll rotates the campus */
+ else goal.r=Math.min(130,Math.max(10,goal.r*(1+e.deltaY*.001)))},{passive:false});
+
+const ray=new THREE.Raycaster(),mv=new THREE.Vector2();
+function target(e){const r=cv.getBoundingClientRect();mv.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(mv,cam);
+ const set=view?blocks[view].rg.children:pick;const h=ray.intersectObjects(set,false)[0];return h?(view?h.object.userData.room:h.object.userData.block):null}
+function glow(o,on){if(!o)return;if(o.mesh)o.mesh.material.emissive.setHex(on?0x555555:0);else blocks[o.id].all.forEach(m=>{if(!m.userData.c)m.userData.c=m.color.clone();m.color.copy(m.userData.c);if(on)m.color.lerp(new THREE.Color(0xfff0c8),.4)})}
+const tip=document.getElementById("tip");
+function hit(e){const o=target(e);if(o!==hover){glow(hover,false);glow(o,true);hover=o}
+ cv.style.cursor=o?"pointer":"grab";tip.style.display=o?"block":"none";
+ if(o){tip.textContent=o.name;const r=cv.getBoundingClientRect();tip.style.left=e.clientX-r.left+14+"px";tip.style.top=e.clientY-r.top+14+"px"}}
+function click(e){const o=target(e);if(!o)return;o.mesh?openCard(o):enter(o.id)}
+
+/* ---------- navigation ---------- */
+function setOp(bl,o){bl.all.forEach(m=>m.opacity=o)}
+function enter(id){leave(true);view=id;const bl=blocks[id];
+ Object.entries(blocks).forEach(([k,v])=>setOp(v,k===id?.1:.3));bl.rg.visible=true;
+ goal.t.set(bl.b.x,4,bl.b.z);goal.r=Math.max(bl.b.w,bl.b.d)*1.5+10;goal.ph=.9;panel()}
+function leave(keep){if(view)blocks[view].rg.visible=false;view=null;closeCard();
+ Object.values(blocks).forEach(v=>setOp(v,1));
+ if(!keep){goal.t.copy(HOME.t);goal.r=HOME.r;goal.ph=HOME.ph;panel()}}
+function panel(){const s=document.getElementById("side");
+ if(!view){s.innerHTML=`<span id="crumb">Campus</span><h2>Campus blocks</h2>`+BLOCKS.map(b=>`<button class="it" data-b="${b.id}"><span class="dot" style="background:#6f8fb8"></span><span>${b.name}<small>${b.lay.length} rooms</small></span></button>`).join("");
+  s.querySelectorAll("[data-b]").forEach(x=>x.onclick=()=>enter(x.dataset.b))}
+ else{const bl=blocks[view];s.innerHTML=`<button id="back">Back to campus</button><span id="crumb">Campus / ${bl.b.name}</span><h2>${bl.b.name}</h2>`+
+  bl.list.map(r=>`<button class="it" data-r="${r.id}"><span class="dot" style="background:${hx(TYPES[r.t].c)}"></span><span>${r.name}<small>${r.floor}</small></span></button>`).join("");
+  s.querySelector("#back").onclick=()=>leave();s.querySelectorAll("[data-r]").forEach(x=>x.onclick=()=>openCard(rooms[x.dataset.r]))}}
+panel();
+
+/* ---------- Live backend analysis ---------- */
+const $=id=>document.getElementById(id);let cardRoom=null,tok=0,left=CFG.interval;
+let roomCatalogPromise=null;
+async function getRoomCatalog(){
+ if(!roomCatalogPromise)roomCatalogPromise=fetch(`${CFG.api}/api/rooms`)
+  .then(async response=>{const data=await response.json();if(!response.ok)throw new Error(data.detail||"Could not load rooms");return new Map(data.rooms.map(room=>[room.room_id,room]))});
+ return roomCatalogPromise;
+}
+async function getInsight(r){
+ const response=await fetch(`${CFG.api}/api/hybrid/${encodeURIComponent(r.id)}`);
+ const data=await response.json();
+ if(!response.ok&&response.status!==503)throw new Error(data.detail||data.message||`Request failed (${response.status})`);
+ return data;
+}
+function setText(id,value){$(id).textContent=value==null?"":String(value)}
+function addItems(id,items,emptyText){
+ const list=$(id);list.replaceChildren();
+ const values=Array.isArray(items)?items:[];
+ if(!values.length){const li=document.createElement("li");li.className="empty";li.textContent=emptyText;list.appendChild(li);return}
+ for(const value of values){const li=document.createElement("li");li.textContent=typeof value==="string"?value:JSON.stringify(value);list.appendChild(li)}
+}
+function formatPower(value){return value==null?"—":`${value} W`}
+async function openCard(r){
+ cardRoom=r;const my=++tok;left=CFG.interval;
+ $("cd").style.background=hx(TYPES[r.t].c);$("ct").textContent=`${TYPES[r.t].n}, ${r.block.name}`;$("cn").textContent=r.name;
+ $("cs").textContent="";$("cm").replaceChildren();$("ca").textContent="Loading live analysis...";
+ ["reasoning","aiMeta","sensorSummary","cameraSummary"].forEach(id=>setText(id,""));
+ ["sensorRaw","cameraRaw"].forEach(id=>setText(id,""));
+ ["cr","alerts"].forEach(id=>addItems(id,[], ""));
+ $("card").classList.remove("hide");
+ const cameraId=`phone_${r.id.replace(/[^a-zA-Z0-9_-]/g,"_")}`;
+ const cameraUrl=new URL("/camera",CFG.cameraOrigin);
+ cameraUrl.searchParams.set("camera_id",cameraId);cameraUrl.searchParams.set("room_id",r.id);
+ const link=$("cameraLink");link.href=cameraUrl.toString();link.textContent=cameraUrl.toString();
+ try{
+  const catalog=await getRoomCatalog();
+  const roomInfo=catalog.get(r.id);
+  if(!roomInfo)throw new Error(`Room ${r.id} is not configured by the backend`);
+  const d=await getInsight(r);if(my!==tok)return;
+  $("cn").textContent=roomInfo.name;
+  const statusLabels={
+   success:"AI analysis ready",
+   rules_only:"Rules only — AI unavailable",
+   sensor_data_stale_or_invalid:"Sensor data stale or invalid",
+   waiting_for_sensor_data:"Waiting for sensor data"
+  };
+  const status=d.status||"unknown";setText("cs",statusLabels[status]||status);
+  $("cs").style.background=status==="success"?"#dbe6f4":status==="rules_only"?"#f3dfba":"#f4d7d7";
+  $("cs").style.color="#0b1f3f";
+  const sensor=d.sensor_data||{};
+  const environment=sensor.environment||{},equipment=sensor.equipment||{},water=sensor.water||{};
+  const metrics=[
+   ["Temperature",environment.temperature_c==null?"—":`${environment.temperature_c} °C`],
+   ["Humidity",environment.humidity_percent==null?"—":`${environment.humidity_percent}%`],
+   ["AC",equipment.ac_status||"—"],
+   ["Power",formatPower(equipment.total_power_w)]
+  ];
+  $("cm").replaceChildren(...metrics.map(([label,value])=>{const cell=document.createElement("div"),strong=document.createElement("b"),span=document.createElement("span");strong.textContent=value;span.textContent=label;cell.append(strong,span);return cell}));
+  setText("sensorSummary",sensor.timestamp_utc?
+   `${sensor.source||"Unknown source"} · ${sensor.scenario||"scenario unavailable"} · Lights ${equipment.lights_status||"unknown"} · Water leak ${water.leak_detected===true?"detected":water.leak_detected===false?"not detected":"unknown"}`:
+   "No sensor reading available.");
+  setText("sensorRaw",JSON.stringify(sensor,null,2));
+  const camera=d.camera_data;
+  setText("cameraSummary",camera?
+   `${camera.camera_id} · ${camera.status||"observed"} · ${camera.person_count??0} people · ${camera.detection_count??0} detections${camera.object_counts?` · Objects: ${Object.entries(camera.object_counts).map(([name,count])=>`${name} ${count}`).join(", ")}`:""} · ${camera.inference_ms??"—"} ms · ${camera.timestamp_utc||"time unavailable"}`:
+   "No phone camera has sent a frame for this room yet.");
+  setText("cameraRaw",JSON.stringify(camera,null,2));
+  const ai=d.ai_analysis;
+  setText("ca",ai?.recommendation||d.message||"AI analysis is not available.");
+  setText("reasoning",ai?.reasoning||"");
+  setText("aiMeta",ai?`Priority: ${ai.priority} · Human verification required: ${ai.requires_human_verification?"yes":"no"} · Evidence: ${(ai.evidence_used||[]).join(", ")||"none"}${ai.estimated_savings==null?" · Estimated savings: not calculated":""}${ai.limitations?.length?` · Limitations: ${ai.limitations.join("; ")}`:""}`:"");
+  addItems("cr",ai?.actions,"No AI actions returned.");
+  addItems("alerts",d.rule_alerts?.map(alert=>`${alert.priority}: ${alert.message}`),"No rule alerts.");
+  const roomStatus=status==="success"?(d.rule_alerts?.some(alert=>alert.priority==="high")?"critical":d.rule_alerts?.length?"attention":"optimal"):
+   status==="rules_only"||status==="sensor_data_stale_or_invalid"?"attention":"optimal";
+  setRoomStatus(r.id,roomStatus);
+ }catch(error){
+  if(my===tok){setText("ca",`Could not load live room analysis: ${error.message||String(error)}`);setRoomStatus(r.id,"attention")}
+ }
+}
+function closeCard(){tok++;cardRoom=null;$("card").classList.add("hide")}
+$("cx").onclick=closeCard;
+$("copyCameraLink").onclick=async()=>{try{await navigator.clipboard.writeText($("cameraLink").href);$("copyCameraLink").textContent="Copied"}catch(error){$("copyCameraLink").textContent="Copy unavailable";console.error("Could not copy camera URL:",error)}};
+
+function setRoomStatus(id,st){const r=rooms[id];if(r)r.mesh.material.emissive.setHex(STAT[st]?STAT[st][2]:0)}
+window.CampusTwin={CFG,setRoomStatus,openRoom:id=>rooms[id]&&(enter(rooms[id].block.id),openCard(rooms[id]))};
+
+/* ---------- 2-minute analysis clock ---------- */
+const fmt=s=>String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");
+setInterval(()=>{left=left<=1?CFG.interval:left-1;$("hc").textContent=fmt(left);
+ if(cardRoom){$("cu").textContent="Next analysis in "+fmt(left);if(left===CFG.interval)openCard(cardRoom)}},1000);
+
+/* ---------- Cumulative live charts ---------- */
+const analyticsSamples=[];
+let analyticsRefreshing=false;
+const analyticsColors=["#0b1f3f","#6f8fb8","#a9c1e0","#3f7d70","#bc8152","#8a78a8","#d17d86","#7a8c4c"];
+function prepareChart(canvas){
+ const rect=canvas.getBoundingClientRect(),ratio=window.devicePixelRatio||1;
+ if(rect.width<1||rect.height<1)return null;
+ canvas.width=Math.round(rect.width*ratio);
+ canvas.height=Math.round(rect.height*ratio);
+ const ctx=canvas.getContext("2d");
+ ctx.setTransform(ratio,0,0,ratio,0,0);
+ ctx.clearRect(0,0,rect.width,rect.height);
+ ctx.font="11px DM Sans, system-ui, sans-serif";
+ ctx.fillStyle="#5b7192";
+ return{ctx,width:rect.width,height:rect.height};
+}
+function chartMessage(canvas,message){
+ const chart=prepareChart(canvas);if(!chart)return;
+ chart.ctx.textAlign="center";chart.ctx.textBaseline="middle";
+ chart.ctx.fillText(message,chart.width/2,chart.height/2);
+}
+function drawLineChart(canvasId,key,color,unit){
+ const canvas=$(canvasId),chart=prepareChart(canvas);if(!chart)return;
+ const points=analyticsSamples.map(sample=>sample[key]).filter(Number.isFinite);
+ if(!points.length){chartMessage(canvas,"Waiting for live sensor data");return}
+ const{ctx,width,height}=chart,pad={left:48,right:12,top:12,bottom:28};
+ const plotW=width-pad.left-pad.right,plotH=height-pad.top-pad.bottom;
+ const min=Math.min(...points),max=Math.max(...points),spread=max-min||Math.max(Math.abs(max)*.1,1);
+ const low=min-spread*.12,high=max+spread*.12;
+ ctx.strokeStyle="#e5ebf3";ctx.fillStyle="#5b7192";ctx.lineWidth=1;
+ ctx.textAlign="right";ctx.textBaseline="middle";
+ for(let i=0;i<=4;i++){
+  const y=pad.top+plotH*i/4,value=high-(high-low)*i/4;
+  ctx.beginPath();ctx.moveTo(pad.left,y);ctx.lineTo(width-pad.right,y);ctx.stroke();
+  ctx.fillText(`${value.toFixed(unit==="°C"?1:0)}${unit}`,pad.left-6,y);
+ }
+ ctx.textAlign="center";ctx.textBaseline="top";
+ const labels=[0,Math.floor((analyticsSamples.length-1)/2),analyticsSamples.length-1];
+ for(const index of new Set(labels)){
+  const sample=analyticsSamples[index];if(!sample)continue;
+  const x=pad.left+(analyticsSamples.length===1?plotW/2:index/(analyticsSamples.length-1)*plotW);
+  ctx.fillText(new Date(sample.time).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit",second:"2-digit"}),x,height-pad.bottom+7);
+ }
+ ctx.strokeStyle=color;ctx.lineWidth=2.5;ctx.lineJoin="round";ctx.lineCap="round";ctx.beginPath();
+ points.forEach((value,index)=>{
+  const x=pad.left+(points.length===1?plotW/2:index/(points.length-1)*plotW);
+  const y=pad.top+(high-value)/(high-low)*plotH;
+  if(index===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+ });
+ ctx.stroke();
+}
+function drawCameraChart(cameras){
+ const canvas=$("cameraChart"),chart=prepareChart(canvas);if(!chart)return;
+ const records=Object.values(cameras||{}).sort((a,b)=>(b.detection_count||0)-(a.detection_count||0)).slice(0,8);
+ if(!records.length){chartMessage(canvas,"Waiting for a phone camera frame");return}
+ const{ctx,width,height}=chart,pad={left:34,right:10,top:8,bottom:44};
+ const plotW=width-pad.left-pad.right,plotH=height-pad.top-pad.bottom;
+ const maxValue=Math.max(1,...records.map(record=>record.detection_count||0));
+ const groupW=plotW/records.length,barW=Math.min(22,groupW*.28);
+ ctx.strokeStyle="#e5ebf3";ctx.fillStyle="#5b7192";ctx.lineWidth=1;
+ ctx.textAlign="right";ctx.textBaseline="middle";
+ for(let i=0;i<=4;i++){
+  const y=pad.top+plotH*i/4,value=Math.round(maxValue*(1-i/4));
+  ctx.beginPath();ctx.moveTo(pad.left,y);ctx.lineTo(width-pad.right,y);ctx.stroke();ctx.fillText(String(value),pad.left-6,y);
+ }
+ records.forEach((record,index)=>{
+  const center=pad.left+groupW*(index+.5),people=Math.max(0,record.person_count||0),other=Math.max(0,(record.detection_count||0)-people);
+  const peopleH=people/maxValue*plotH,otherH=other/maxValue*plotH;
+  ctx.fillStyle=analyticsColors[0];ctx.fillRect(center-barW-2,pad.top+plotH-peopleH,barW,peopleH);
+  ctx.fillStyle=analyticsColors[2];ctx.fillRect(center+2,pad.top+plotH-otherH,barW,otherH);
+  ctx.save();ctx.translate(center,height-pad.bottom+7);ctx.rotate(-Math.PI/4);ctx.textAlign="right";ctx.textBaseline="middle";
+  ctx.fillStyle="#5b7192";ctx.fillText(record.room_id||record.camera_id||"camera",0,0);ctx.restore();
+ });
+ ctx.textAlign="left";ctx.textBaseline="bottom";ctx.fillStyle=analyticsColors[0];ctx.fillRect(pad.left, height-7, 9, 9);
+ ctx.fillStyle="#5b7192";ctx.fillText("People",pad.left+13,height);
+ ctx.fillStyle=analyticsColors[2];ctx.fillRect(pad.left+68,height-7,9,9);
+ ctx.fillStyle="#5b7192";ctx.fillText("Other objects",pad.left+81,height);
+}
+function drawAcChart(sensorRooms){
+ const canvas=$("acChart"),chart=prepareChart(canvas);if(!chart)return;
+ const readings=Object.values(sensorRooms||{});
+ if(!readings.length){chartMessage(canvas,"Waiting for live sensor data");return}
+ const on=readings.filter(reading=>reading.equipment?.ac_status==="ON").length;
+ const off=readings.filter(reading=>reading.equipment?.ac_status==="OFF").length;
+ const unknown=readings.length-on-off;
+ const{ctx,width,height}=chart,centerX=width*.38,centerY=height*.51,radius=Math.min(width*.25,height*.38);
+ const segments=[["AC on",on,"#0b1f3f"],["AC off",off,"#a9c1e0"],["Unknown",unknown,"#e5ebf3"]].filter(segment=>segment[1]>0);
+ const total=segments.reduce((sum,segment)=>sum+segment[1],0);
+ let angle=-Math.PI/2;
+ for(const[,value,color]of segments){
+  const next=angle+value/total*Math.PI*2;
+  ctx.beginPath();ctx.arc(centerX,centerY,radius,angle,next);ctx.arc(centerX,centerY,radius*.58,next,angle,true);
+  ctx.closePath();ctx.fillStyle=color;ctx.fill();angle=next;
+ }
+ ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillStyle="#0b1f3f";ctx.font="700 18px DM Sans, system-ui, sans-serif";
+ ctx.fillText(String(readings.length),centerX,centerY-4);ctx.font="11px DM Sans, system-ui, sans-serif";ctx.fillStyle="#5b7192";
+ ctx.fillText("rooms",centerX,centerY+14);
+ const legendX=width*.68;let legendY=height*.35;
+ for(const[label,value,color]of segments){
+  ctx.fillStyle=color;ctx.fillRect(legendX,legendY-6,10,10);ctx.fillStyle="#0b1f3f";ctx.textAlign="left";ctx.textBaseline="middle";
+  ctx.fillText(`${label}: ${value}`,legendX+16,legendY);legendY+=25;
+ }
+}
+function renderAnalytics(sensorRooms,cameras){
+ drawLineChart("temperatureChart","temperature","#6f8fb8","°C");
+ drawLineChart("powerChart","power","#0b1f3f"," W");
+ drawCameraChart(cameras);
+ drawAcChart(sensorRooms);
+}
+async function refreshAnalytics(){
+ if(analyticsRefreshing)return;
+ analyticsRefreshing=true;
+ try{
+  const[ sensorResponse,cameraResponse ]=await Promise.all([
+   fetch(`${CFG.api}/api/sensors/latest`),
+   fetch(`${CFG.api}/api/latest`)
+  ]);
+  if(!sensorResponse.ok||!cameraResponse.ok)throw new Error("The live data endpoints are unavailable.");
+  const sensorData=await sensorResponse.json(),cameraData=await cameraResponse.json();
+  const sensorRooms=sensorData.rooms||{},readings=Object.values(sensorRooms);
+  const temperatures=readings.map(reading=>reading.environment?.temperature_c).filter(Number.isFinite);
+  const power=readings.map(reading=>reading.equipment?.total_power_w).filter(Number.isFinite);
+  analyticsSamples.push({
+   time:Date.now(),
+   temperature:temperatures.length?temperatures.reduce((sum,value)=>sum+value,0)/temperatures.length:null,
+   power:power.length?power.reduce((sum,value)=>sum+value,0):null
+  });
+  if(analyticsSamples.length>60)analyticsSamples.shift();
+  renderAnalytics(sensorRooms,cameraData.cameras||{});
+  $("analyticsStatus").textContent=`Live · Updated ${new Date().toLocaleTimeString()} · ${readings.length} sensor rooms · ${Object.keys(cameraData.cameras||{}).length} cameras · sensor values are simulated`;
+ }catch(error){
+  $("analyticsStatus").textContent=`Live data unavailable: ${error.message||String(error)}`;
+  renderAnalytics({}, {});
+ }finally{
+  analyticsRefreshing=false;
+ }
+}
+refreshAnalytics();
+setInterval(refreshAnalytics,5000);
+window.addEventListener("resize",()=>refreshAnalytics());
+
+/* ---------- loop ---------- */
+(function loop(){requestAnimationFrame(loop);
+ if(!view&&!drag&&!cardRoom&&!matchMedia("(prefers-reduced-motion:reduce)").matches)goal.th+=.0007;
+ cur.t.lerp(goal.t,.07);["r","th","ph"].forEach(k=>cur[k]+=(goal[k]-cur[k])*.07);
+ cam.position.set(cur.t.x+cur.r*Math.sin(cur.ph)*Math.sin(cur.th),cur.t.y+cur.r*Math.cos(cur.ph),cur.t.z+cur.r*Math.sin(cur.ph)*Math.cos(cur.th));
+ cam.lookAt(cur.t);ren.render(scene,cam)})();
+</script>
+</body>
+</html>

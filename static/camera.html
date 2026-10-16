@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>CampusTwin Camera</title>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        max-width: 700px;
+        margin: 20px auto;
+        padding: 16px;
+        background: #f4f6f8;
+        color: #202124;
+    }
+
+    h1 {
+        margin-bottom: 8px;
+    }
+
+    video {
+        width: 100%;
+        background: #111;
+        border-radius: 12px;
+    }
+
+    button {
+        padding: 12px 18px;
+        margin: 8px 4px 8px 0;
+        border: 0;
+        border-radius: 8px;
+        font-size: 16px;
+        cursor: pointer;
+    }
+
+    #startButton {
+        background: #146c43;
+        color: white;
+    }
+
+    #stopButton {
+        background: #b02a37;
+        color: white;
+    }
+
+    .panel {
+        padding: 14px;
+        margin-top: 12px;
+        background: white;
+        border-radius: 10px;
+        overflow-wrap: anywhere;
+    }
+
+    #status {
+        white-space: pre-wrap;
+    }
+
+    #objectCounts {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 12px;
+    }
+
+    .object-card {
+        padding: 12px;
+        background: #eef3f7;
+        border-radius: 8px;
+    }
+
+    .object-name {
+        font-size: 14px;
+        color: #444;
+        text-transform: capitalize;
+    }
+
+    .object-number {
+        font-size: 26px;
+        font-weight: bold;
+        margin-top: 4px;
+    }
+
+    .section-title {
+        margin-bottom: 8px;
+    }
+
+    .note {
+        font-size: 13px;
+        color: #555;
+    }
+</style>
+</head>
+
+<body>
+
+    <h1>CampusTwin Camera</h1>
+
+<p id="cameraInfo"></p>
+
+<video
+    id="video"
+    autoplay
+    muted
+    playsinline
+></video>
+
+<canvas id="canvas" hidden></canvas>
+
+<br>
+
+<button id="startButton">Start Camera</button>
+<button id="stopButton">Stop Camera</button>
+
+<div class="panel">
+    <h3 class="section-title">Camera Status</h3>
+    <div id="status">Camera stopped.</div>
+</div>
+
+<div class="panel">
+    <h3 class="section-title">Object Counts</h3>
+
+    <p class="note">
+        Counts represent objects detected in the latest frame,
+        not unique objects accumulated over time.
+    </p>
+
+    <div id="objectCounts">
+        <div class="object-card">
+            <div class="object-name">Waiting for detections</div>
+            <div class="object-number">—</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const video = document.getElementById("video");
+    const canvas = document.getElementById("canvas");
+    const statusBox = document.getElementById("status");
+    const objectCountsBox = document.getElementById("objectCounts");
+
+    const params = new URLSearchParams(
+        window.location.search
+    );
+
+    const cameraId = params.get("camera_id") || "camera_1";
+    const roomId = params.get("room_id") || "room_1";
+
+    document.getElementById("cameraInfo").textContent =
+        `Camera: ${cameraId} | Room: ${roomId}`;
+
+    let mediaStream = null;
+    let captureTimer = null;
+    let sending = false;
+
+    function setStatus(message) {
+        statusBox.textContent = message;
+    }
+
+    function displayObjectCounts(counts) {
+        objectCountsBox.replaceChildren();
+
+        const entries = Object.entries(counts || {})
+            .sort((a, b) => b[1] - a[1]);
+
+        if (entries.length === 0) {
+            const card = document.createElement("div");
+            card.className = "object-card";
+
+            const name = document.createElement("div");
+            name.className = "object-name";
+            name.textContent = "No objects detected";
+
+            const number = document.createElement("div");
+            number.className = "object-number";
+            number.textContent = "0";
+
+            card.append(name, number);
+            objectCountsBox.appendChild(card);
+            return;
+        }
+
+        for (const [label, count] of entries) {
+            const card = document.createElement("div");
+            card.className = "object-card";
+
+            const name = document.createElement("div");
+            name.className = "object-name";
+            name.textContent = label.replaceAll("_", " ");
+
+            const number = document.createElement("div");
+            number.className = "object-number";
+            number.textContent = String(count);
+
+            card.append(name, number);
+            objectCountsBox.appendChild(card);
+        }
+    }
+
+    async function sendFrame() {
+        if (!mediaStream || sending) {
+            return;
+        }
+
+        if (video.readyState < 2) {
+            return;
+        }
+
+        sending = true;
+
+        try {
+            const context = canvas.getContext("2d");
+
+            const maxWidth = 1280;
+
+            const scale = Math.min(
+                1,
+                maxWidth / video.videoWidth
+            );
+
+            canvas.width = Math.round(
+                video.videoWidth * scale
+            );
+
+            canvas.height = Math.round(
+                video.videoHeight * scale
+            );
+
+            context.drawImage(
+                video,
+                0,
+                0,
+                canvas.width,
+                canvas.height
+            );
+
+            const blob = await new Promise(resolve => {
+                canvas.toBlob(
+                    resolve,
+                    "image/jpeg",
+                    0.90
+                );
+            });
+
+            if (!blob) {
+                throw new Error(
+                    "Could not capture camera frame"
+                );
+            }
+
+            const url = new URL(
+                "/api/frame",
+                window.location.origin
+            );
+
+            url.searchParams.set("camera_id", cameraId);
+            url.searchParams.set("room_id", roomId);
+
+            const response = await fetch(url, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "image/jpeg"
+                },
+                body: blob
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    data.detail || "Upload failed"
+                );
+            }
+
+            setStatus(
+                "Camera connected\n" +
+                "Last upload: " +
+                new Date().toLocaleTimeString() +
+                "\nPeople detected: " +
+                data.person_count +
+                "\nTotal detections: " +
+                data.detection_count +
+                "\nInference: " +
+                data.inference_ms +
+                " ms"
+            );
+
+            // This field must be provided by the backend.
+            displayObjectCounts(data.object_counts);
+
+        } catch (error) {
+            console.error("Frame upload failed:", error);
+            setStatus(
+                "Frame upload failed: " +
+                (error.name || "Error") +
+                 ": " +
+                (error.message || String(error))
+            );
+
+        } finally {
+            sending = false;
+        }
+    }
+
+    async function startCamera() {
+        try {
+            if (mediaStream) {
+                return;
+            }
+
+            if (!window.isSecureContext) {
+                throw new Error(
+                    "Camera access requires HTTPS or a trusted local context."
+                );
+            }
+
+            mediaStream =
+                await navigator.mediaDevices.getUserMedia({
+                    audio: false,
+                    video: {
+                        facingMode: {
+                            ideal: "environment"
+                        },
+                        width: {
+                            ideal: 1280
+                        },
+                        height: {
+                            ideal: 720
+                        }
+                    }
+                });
+
+            video.srcObject = mediaStream;
+
+            await video.play();
+
+            setStatus(
+                "Camera started. Sending frames..."
+            );
+
+            await sendFrame();
+
+            captureTimer = setInterval(
+                sendFrame,
+                2000
+            );
+
+        } catch (error) {
+            setStatus(
+                "Could not start camera: " +
+                error.message
+            );
+
+            if (mediaStream) {
+                mediaStream.getTracks().forEach(
+                    track => track.stop()
+                );
+
+                mediaStream = null;
+            }
+        }
+    }
+
+    function stopCamera() {
+        if (captureTimer !== null) {
+            clearInterval(captureTimer);
+            captureTimer = null;
+        }
+
+        if (mediaStream) {
+            mediaStream.getTracks().forEach(
+                track => track.stop()
+            );
+
+            mediaStream = null;
+        }
+
+        video.srcObject = null;
+
+        setStatus("Camera stopped.");
+    }
+
+    document.getElementById("startButton")
+        .addEventListener("click", startCamera);
+
+    document.getElementById("stopButton")
+        .addEventListener("click", stopCamera);
+
+    window.addEventListener("pagehide", stopCamera);
+</script>
+
+</body>
+</html>
